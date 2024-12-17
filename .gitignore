@@ -1,0 +1,46 @@
+# Archivos Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Archivos de configuración local y variables de entorno
+*.env
+.env.*
+local_settings.py
+
+# Archivos de migraciones de Django (excepto el __init__.py)
+*/migrations/*.py
+*/migrations/*.pyc
+!*/migrations/__init__.py
+
+# Base de datos SQLite (si se usa en desarrollo)
+*.db
+*.sqlite3
+
+# Archivos de log
+*.log
+*.out
+
+# Archivos generados por collectstatic (archivos estáticos)
+staticfiles/
+static/
+
+# Archivos multimedia
+media/
+
+# Entorno virtual (virtualenv)
+venv/
+ENV/
+env/
+
+# Archivos de herramientas de desarrollo
+.vscode/
+.idea/
+*.iml
+
+# Archivos de paquetes de Python
+*.egg-info/
+dist/
+build/
+*.egg
