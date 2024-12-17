@@ -43,4 +43,57 @@ class APIClient:
                 
         except requests.exceptions.RequestException as e:
             # Manejar errores de conexión o de la API
-            return {"msg": "Error al conectar con el servidor. Intente nuevamente más tarde."}
+            return {"msg" : "Error al conectar con el servidor. Intente nuevamente más tarde."}
+
+    @staticmethod
+    def crearEncuesta(titulo, descripcion, fecha_inicio, fecha_fin, opciones):
+        url = f'{APIClient.API_BASE_URL}/crear-encuesta' #Endpoint de crear encuesta
+
+        try:
+            data = {
+                'titulo' : titulo,
+                'descripcion' : descripcion,
+                'fecha_inicio' : fecha_inicio,
+                'fecha_fin' : fecha_fin,
+                'opciones' : opciones,
+            }
+
+            response = requests.post(url, json=data)
+
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return response.json()
+            
+        except requests.exceptions.RequestException as e:
+            # Manejar errores de conexión o de la API
+            return {"msg" : "Error al conectar con el servidor. Intente nuevamente más tarde."} 
+    
+    @staticmethod
+    def emitirVoto(encuesta_id, opcion_id):
+        url = f'{APIClient.API_BASE_URL}/votos' #Endpoint de emitir voto
+
+        try:
+            data = {
+                'encuesta_id' : encuesta_id,
+                'opcion_id' : opcion_id
+            }
+            response = requests.post(url, json=data)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return response.json()
+            
+        except requests.exceptions.RequestException as e:
+            # Manejar errores de conexión o de la API
+            return {"msg" : "Error al conectar con el servidor. Intente nuevamente más tarde."} 
+
+    @staticmethod
+    def verResultados():
+        url = f'{APIClient.API_BASE_URL}/ver-resultados' #Endpoint de ver resultados
+        try:
+            response = requests.get(url)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            #Manejar errores de conexión o de la API
+            return {"msg" : "Error al conectar con el servidor. Intente nuevamente más tarde."}
