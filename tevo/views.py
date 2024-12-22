@@ -167,3 +167,57 @@ def admin_only_view(request):
     return render(request, 'creador_home.html')
 
 # Crear una view para cada funcion
+
+@role_required(['creador'])  # Proteger la vista para el rol 'creador'
+def crear_encuesta_view(request):
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo')
+        descripcion = request.POST.get('descripcion')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_fin = request.POST.get('fecha_fin')
+        opciones = request.POST.getlist('opciones')
+
+        # Validaciones
+        errores = []
+        if not all([titulo, descripcion, fecha_inicio, fecha_fin, opciones]):
+            errores.append("Todos los campos son obligatorios.")
+        
+        if len(opciones) < 2:
+            errores.append("Debe haber al menos dos opciones de respuesta.")
+        
+        try:
+            fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+            fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
+            
+            if fecha_inicio_dt < now():
+                errores.append("La fecha de inicio debe ser mayor o igual a la fecha actual.")
+            if fecha_fin_dt <= fecha_inicio_dt:
+                errores.append("La fecha de fin debe ser mayor a la fecha de inicio.")
+        except ValueError:
+            errores.append("Formato de fecha inválido.")
+
+        # Verificar si el título es único
+        try:
+            encuestas = APIClient.obtener_encuestas()
+            if any(e['titulo'] == titulo for e in encuestas):
+                errores.append("El título de la encuesta ya existe.")
+        except requests.exceptions.RequestException as e:
+            errores.append("Error al verificar el título de la encuesta.")
+
+        if errores:
+            return render(request, 'crear_encuesta.html', {'errores': errores})
+
+        # Crear la encuesta
+        try:
+            APIClient.crear_encuesta({
+                'titulo': titulo,
+                'descripcion': descripcion,
+                'fecha_inicio': fecha_inicio,
+                'fecha_fin': fecha_fin,
+                'opciones': opciones
+            })
+            return redirect('encuestas')  # Redirigir a la lista de encuestas o una página de éxito
+        except requests.exceptions.RequestException as e:
+            return render(request, 'crear_encuesta.html', {'errores': ["Error al conectar con el servidor."]})
+
+    return render(request, 'crear_encuesta.html')

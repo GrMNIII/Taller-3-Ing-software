@@ -1,19 +1,129 @@
-<!-- templates/creador_home.html -->
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Encuestas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-{% block title %}Panel de Administración{% endblock %}
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #C8A8D6; /* Lavanda suave */
+        }
 
-{% block content %}
-<div class="row">
-    <div class="col-md-12 mb-4">
-        <h2>Panel de Creador</h2>
-        <p class="lead">Bienvenido(a) al panel del rol "Creador"</p>
+        .results-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .results-header h1 {
+            color: #666;
+            font-size: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: #A3E6B1; /* Verde menta */
+            color: #666;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .back-link {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .back-link a {
+            color: #C8A8D6; /* Lavanda suave */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .create-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .create-link a {
+            color: #A3E6B1; /* Verde menta */
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .create-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="results-container">
+        <div class="results-header">
+            <h1>Resultados de las Encuestas</h1>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre de la Encuesta</th>
+                    <th>Opción Ganadora</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se llenarán los resultados dinámicamente -->
+                {% for encuesta in encuestas %}
+                <tr>
+                    <td>{{ encuesta.nombre }}</td>
+                    <td>{{ encuesta.opcion_ganadora }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="back-link">
+            <p><a href="/">Volver a Inicio</a></p>
+        </div>
+
+        <div class="create-link">
+            <p>¿Quieres crear una nueva encuesta? <a href="/crear_encuesta">Haz clic aquí</a></p>
+        </div>
     </div>
-    <div class="register-link">
-        <p>¿Quieres crear una encuesta? <a href="/crear_encuesta">Creala aquí</a></p>
-    </div>
-    
-</div>
-{% endblock %}
-
-// ver resultados y crear encuesta (view del creador)
+</body>
+</html>
