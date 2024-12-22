@@ -165,3 +165,5 @@ def role_required(allowed_roles):
 @role_required(['creador'])
 def admin_only_view(request):
     return render(request, 'creador_home.html')
+
+# Crear una view para cada funcion
