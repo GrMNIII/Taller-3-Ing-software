@@ -43,59 +43,51 @@ class APIClient:
                 
         except requests.exceptions.RequestException as e:
             # Manejar errores de conexión o de la API
-            return {"msg" : "Error al conectar con el servidor. Intente nuevamente más tarde."}
-
+            return {"msg": "Error al conectar con el servidor. Intente nuevamente más tarde."}
+        
     @staticmethod
-    def crearEncuesta(titulo, descripcion, fecha_inicio, fecha_fin, opciones):
-        url = f'{APIClient.API_BASE_URL}/crear-encuesta' #Endpoint de crear encuesta
-
+    def encuestas(token):
+        url = f'{APIClient.API_BASE_URL}/encuestas/disponibles'  # Endpoint de encuestas disponibles
+        headers = {
+            'Authorization' : f'Bearer {token}'
+        }
         try:
-            data = {
-                'titulo' : titulo,
-                'descripcion' : descripcion,
-                'fecha_inicio' : fecha_inicio,
-                'fecha_fin' : fecha_fin,
-                'opciones' : opciones,
-            }
-
-            response = requests.post(url, json=data)
-
+            response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 return response.json()
             else:
                 return response.json()
-            
         except requests.exceptions.RequestException as e:
-            # Manejar errores de conexión o de la API
-            return {"msg" : "Error al conectar con el servidor. Intente nuevamente más tarde."} 
-    
+            return{'msg': 'Error al conectar con el servidor. Intente nuevamente más tarde.'}
+        
     @staticmethod
-    def emitirVoto(encuesta_id, opcion_id):
-        url = f'{APIClient.API_BASE_URL}/votos' #Endpoint de emitir voto
-
+    def votar (token, encuesta, opcion):
+        url = f'{APIClient.API_BASE_URL}/votos'  # Endpoint de encuestas disponibles
+        headers = {
+            'Authorization' : f'Bearer {token}'
+        }
+        
         try:
-            data = {
-                'encuesta_id' : encuesta_id,
-                'opcion_id' : opcion_id
-            }
-            response = requests.post(url, json=data)
+            response = requests.post(url, json={'encuesta_id': encuesta, 'opcion_id': opcion}, headers=headers)
             if response.status_code == 200:
                 return response.json()
             else:
                 return response.json()
-            
         except requests.exceptions.RequestException as e:
-            # Manejar errores de conexión o de la API
-            return {"msg" : "Error al conectar con el servidor. Intente nuevamente más tarde."} 
-
+            return{'msg': 'Error al conectar con el servidor. Intente nuevamente más tarde.'}
+        
     @staticmethod
-    def verResultados():
-        url = f'{APIClient.API_BASE_URL}/ver-resultados' #Endpoint de ver resultados
+    def ver_votos(token, encuesta):
+        url = f'{APIClient.API_BASE_URL}/encuestas/<int:encuesta>/resultados' 
+        headers = {
+            'Authorization' : f'Bearer {token}'
+        }
+        
         try:
-            response = requests.get(url)
-            return response.json()
+            response = requests.POST(url, json={'encuesta_id': encuesta}, headers = headers)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return response.json()
         except requests.exceptions.RequestException as e:
-            #Manejar errores de conexión o de la API
-            return {"msg" : "Error al conectar con el servidor. Intente nuevamente más tarde."}
-
-#Es necesario crear los endpoints para los nuevos metodos (crearEncuesta, emitirVoto, verResultados)? no estan el urls.py
+            return{'msg': 'Error al conectar con el servidor. Intente nuevamente más tarde.'} 

@@ -6,6 +6,6 @@ urlpatterns = [
     path('login', views.login_view, name='login'),  # Ruta para el login
     path('registro', views.crear_cuenta_view, name='registro'),  # Ruta para el registro
     path('logout/', views.logout_view, name='logout'), # Ruta para el cierre de sesión
-
-    path('crear_encuesta', views.crear_encuesta_view, name='crear_encuesta') #Ruta para crear encuesta
-]
+    path('encuesta/<int:encuesta_id>', views.votar, name='encuesta'),  # Ruta para votar
+    path('encuestas/', views.get_survey, name='encuestas'),  # Ruta para encuestas
+    ]

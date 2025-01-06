@@ -3,7 +3,9 @@ import jwt
 from django.shortcuts import render, redirect
 from django.conf import settings
 from services.api.client import APIClient
+from services.api.view_factory import ViewFactory
 import requests
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -38,14 +40,8 @@ def login_view(request):
                 request.session['user_token'] = token
                 request.session['user_role'] = user_role
                 
-                # Redirigir a diferentes templates según el rol
-                if user_role == 'creador':
-                    return render(request, 'creador_home.html')
-                elif user_role == 'participante':
-                    return render(request, 'participante_home.html')
-                else:
-                    # Template por defecto o manejo de rol desconocido
-                    return render(request, 'login.html')
+               # Usar la fábrica simplificada
+                return ViewFactory.get_renderer(request, user_role)
                 
             except Exception as e:
                 print(f"Error al iniciar sesión: {str(e)}")
@@ -112,14 +108,8 @@ def crear_cuenta_view(request):
                 request.session['user_token'] = token
                 request.session['user_role'] = user_role
                 
-                # Redirigir según el rol
-                if user_role == 'creador':
-                    return render(request, 'creador_home.html')
-                elif user_role == 'participante':
-                    return render(request, 'participante_home.html')
-                else:
-                    # Template por defecto
-                    return render(request, 'participante_home.html')
+                # Usar la fábrica simplificada
+                return ViewFactory.get_renderer(request, user_role)
 
             except Exception as e:
                 print(f"Error al iniciar sesión después del registro: {str(e)}")
@@ -166,58 +156,69 @@ def role_required(allowed_roles):
 def admin_only_view(request):
     return render(request, 'creador_home.html')
 
-# Crear una view para cada funcion
 
-@role_required(['creador'])  # Proteger la vista para el rol 'creador'
-def crear_encuesta_view(request):
-    if request.method == 'POST':
-        titulo = request.POST.get('titulo')
-        descripcion = request.POST.get('descripcion')
-        fecha_inicio = request.POST.get('fecha_inicio')
-        fecha_fin = request.POST.get('fecha_fin')
-        opciones = request.POST.getlist('opciones')
+def get_survey(request):
+    """
+    Método que obtiene las encuestas para un usuario autenticado.
 
-        # Validaciones
-        errores = []
-        if not all([titulo, descripcion, fecha_inicio, fecha_fin, opciones]):
-            errores.append("Todos los campos son obligatorios.")
-        
-        if len(opciones) < 2:
-            errores.append("Debe haber al menos dos opciones de respuesta.")
-        
+    Esta función verifica si el usuario está autenticado comprobando la presencia
+    de un token en la sesión. Si no se encuentra el token, el usuario es redirigido
+    a la página de inicio de sesión. Si el token está presente y el método de solicitud es 'GET',
+    intenta obtener encuestas utilizando el APIClient. Si ocurre un error durante este proceso,
+    se devuelve una lista vacía de encuestas.
+
+    Args:
+        request (HttpRequest): El objeto de solicitud HTTP que contiene metadatos sobre la solicitud.
+
+    Returns:
+        HttpResponse: Un objeto de respuesta que renderiza la plantilla 'encuestas.html' con las
+                      encuestas recuperadas o una lista vacía si ocurrió un error.
+    """
+    if(request.session.get('user_token') == None):
+        return redirect('login')
+    
+    if request.method == 'GET':
         try:
-            fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
-            fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
+            encuestas = APIClient.encuestas(request.session.get('user_token'))
+        except Exception as e:
+            print(f"Error: {e}")
+            encuestas= []   
+    return render(request, 'encuestas.html', encuestas)
+     
+        
+def votar(request, encuesta_id):
+    if(request.session.get('user_token') == None):
+        return redirect('login')
+    if request.method == 'GET':
+        try:
+            encuesta_id = int(encuesta_id)
+            encuestas_data = APIClient.encuestas(request.session.get('user_token'))
+            encuestas = encuestas_data['encuestas']
+            encuesta = next((e for e in encuestas if e['id'] == encuesta_id), None)
             
-            if fecha_inicio_dt < now():
-                errores.append("La fecha de inicio debe ser mayor o igual a la fecha actual.")
-            if fecha_fin_dt <= fecha_inicio_dt:
-                errores.append("La fecha de fin debe ser mayor a la fecha de inicio.")
-        except ValueError:
-            errores.append("Formato de fecha inválido.")
-
-        # Verificar si el título es único
+            if encuesta is None:
+                encuesta = "No existe encuesta"
+        except Exception as e:
+            print(f"Error: {e}")
+            encuesta = None
+        return render(request, 'votar.html', {'encuesta': encuesta})
+    
+    elif request.method == "POST":
+        opcion_id = request.POST.get('opcion')
         try:
-            encuestas = APIClient.obtener_encuestas()
-            if any(e['titulo'] == titulo for e in encuestas):
-                errores.append("El título de la encuesta ya existe.")
-        except requests.exceptions.RequestException as e:
-            errores.append("Error al verificar el título de la encuesta.")
+            APIClient.votar(request.session.get('user_token'), encuesta_id, opcion_id)
+            return redirect ('encuestas')
+        except Exception as e:
+            print(f"Error: {e}")
+            return render(request, 'votar.html', {'mensaje': 'Error al enviar la respuesta'})
+        
+    return render(request, 'votar.html', {'encuesta': encuesta})
 
-        if errores:
-            return render(request, 'crear_encuesta.html', {'errores': errores})
+#def resultado_encuestas(request, encuesta_id):
+ #   if(request.session.get('user_token') == None):
+  #      return redirect('login')
+    
+   # if
+    
+    
 
-        # Crear la encuesta
-        try:
-            APIClient.crear_encuesta({
-                'titulo': titulo,
-                'descripcion': descripcion,
-                'fecha_inicio': fecha_inicio,
-                'fecha_fin': fecha_fin,
-                'opciones': opciones
-            })
-            return redirect('encuestas')  # Redirigir a la lista de encuestas o una página de éxito
-        except requests.exceptions.RequestException as e:
-            return render(request, 'crear_encuesta.html', {'errores': ["Error al conectar con el servidor."]})
-
-    return render(request, 'crear_encuesta.html')

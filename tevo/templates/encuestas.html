@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Encuestas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <h2>Encuestas Disponibles</h2>
+        <p class="lead">Las encuestas disponibles son las siguientes</p>
+    </div>
+    {%if encuestas %}
+        {% for encuesta in encuestas%}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"> {{encuesta.titulo}} </h5>
+                    <p class="card-text">{{ encuesta.descripcion}}</p>
+                    <p class="card-text">Inicio de la encuesta: {{ encuesta.fecha_inicio}}</p>
+                    <p class="card-text">Fin de la encuesta: {{ encuesta.fecha_fin}}</p>
+                    <a href="{% url 'encuesta' encuesta.id%}" class="btn btn-primary">Responder encuesta</a>
+                </div>
+            </div>
+        </div>
+        {%endfor%}
+    {%else%}
+        <p class="lead">No hay encuestas disponibles en este momento</p>
+    {%endif%}
+</div>
+
+{% endblock %}
